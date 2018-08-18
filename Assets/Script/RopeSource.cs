@@ -5,7 +5,13 @@ using UnityEngine;
 public class RopeSource : MonoBehaviour {
 
     [SerializeField]
+    private GameProcess gameProcess = null;
+
+    [SerializeField]
     private GameObject ropeSegmentPrefab = null;
+
+    [SerializeField]
+    private GameObject JointPrefab = null;
 
     private GameObject currentSegment = null;
 
@@ -17,10 +23,11 @@ public class RopeSource : MonoBehaviour {
     private Transform subject = null;
 
     [SerializeField]
-    private float roapWidth = 1f;
+    private float rope = 1f;
 
     private float bindedRope = 0f;
     private float segmentLength = 0f;
+
 
     public float RopeLength
     {
@@ -32,6 +39,7 @@ public class RopeSource : MonoBehaviour {
 
     private void Start()
     {
+
         this.currentAnchor = this.baseAnchor;
         this.CreateSegment();
     }
@@ -55,7 +63,7 @@ public class RopeSource : MonoBehaviour {
         this.currentSegment.transform.position = source;
         this.currentSegment.transform.LookAt(this.currentAnchor);
         float length = Vector3.Distance(source, this.currentAnchor.transform.position);
-        this.currentSegment.transform.localScale = new Vector3(this.roapWidth, this.roapWidth, length / 2);
+        this.currentSegment.transform.localScale = new Vector3(this.rope, this.rope, length / 2);
         return length;
     }
 
@@ -63,18 +71,28 @@ public class RopeSource : MonoBehaviour {
     {
         Vector3 direction = (currentAnchor.position - transform.position).normalized;
         RaycastHit hitInfo;
-        bool hit = Physics.SphereCast(transform.position, this.roapWidth, direction, out hitInfo);
+        
+        bool hit = Physics.SphereCast(transform.position, this.rope * .9f, direction, out hitInfo);
         if (hit)
         {
-            Vector3 pos = hitInfo.point;
+            Vector3 hitPosition = hitInfo.point;
 
-            if (Vector3.Distance(pos, currentAnchor.position) > this.roapWidth * 2f)
+            if (Vector3.Distance(hitPosition, currentAnchor.position) > this.rope * 2f)
             {
-
-                bindedRope += this.MatchSegmentToCurrentAnchor(pos);
+                Vector3 start = this.currentAnchor.position;
+                Vector3 end = hitPosition;
+                bindedRope += this.MatchSegmentToCurrentAnchor(hitPosition);
                 this.currentSegment.transform.SetParent(this.subject, true);
                 this.currentAnchor = this.currentSegment.transform;
                 this.currentSegment.GetComponentInChildren<Collider>().enabled = true;
+
+                var joint = GameObject.Instantiate(this.JointPrefab);
+                joint.transform.SetParent(this.subject, false);
+                joint.transform.position = hitPosition;
+                joint.transform.localScale = new Vector3(this.rope, this.rope, this.rope);
+
+                gameProcess.NotifyNewSegment(start, end);
+
                 this.CreateSegment();
             }
         }
