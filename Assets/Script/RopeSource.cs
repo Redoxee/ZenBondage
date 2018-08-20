@@ -27,8 +27,8 @@ public class RopeSource : MonoBehaviour {
 
     private float bindedRope = 0f;
     private float segmentLength = 0f;
-
-
+    private int bodyMask = 0;
+    
     public float RopeLength
     {
         get
@@ -40,6 +40,7 @@ public class RopeSource : MonoBehaviour {
     private void Start()
     {
 
+        this.bodyMask = LayerMask.GetMask("Water") | LayerMask.GetMask("TransparentFX");
         this.currentAnchor = this.baseAnchor;
         this.CreateSegment();
     }
@@ -72,7 +73,7 @@ public class RopeSource : MonoBehaviour {
         Vector3 direction = (currentAnchor.position - transform.position).normalized;
         RaycastHit hitInfo;
         
-        bool hit = Physics.SphereCast(transform.position, this.rope * .9f, direction, out hitInfo);
+        bool hit = Physics.SphereCast(transform.position, this.rope * .9f, direction, out hitInfo, float.MaxValue, this.bodyMask);
         if (hit)
         {
             Vector3 hitPosition = hitInfo.point;
@@ -91,7 +92,7 @@ public class RopeSource : MonoBehaviour {
                 joint.transform.position = hitPosition;
                 joint.transform.localScale = new Vector3(this.rope, this.rope, this.rope);
 
-                gameProcess.NotifyNewSegment(start, end);
+                //gameProcess.NotifyNewSegment(start, end);
 
                 this.CreateSegment();
             }
