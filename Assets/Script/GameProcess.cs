@@ -30,9 +30,39 @@ public class GameProcess : MonoBehaviour
     [SerializeField]
     private float maxRopeLength = 1000f;
 
+    [SerializeField]
+    private GameObject wayPointIndicatorPrefab = null;
+
+    [SerializeField]
+    private Transform wayPointIndicatorTransform = null;
+
+    private List<Image> wayPointIndicators = new List<Image>();
+    private int wayPointCount;
+
+    public bool IsPlaying = true;
+
+    [SerializeField]
+    private Transform WinScreen = null;
+
     private void Awake()
     {
         GameProcess.instance = this;
+
+        for (int pointIndex = 0; pointIndex < wayPoints.Count; ++pointIndex)
+        {
+            GameObject indicator = GameObject.Instantiate(wayPointIndicatorPrefab);
+            indicator.transform.SetParent(wayPointIndicatorTransform, false);
+            var image = indicator.GetComponent<Image>();
+            wayPointIndicators.Add(image);
+        }
+        wayPointCount = wayPoints.Count;
+
+        this.WinScreen.gameObject.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        GameProcess.instance = null;
     }
 
     private void Update()
@@ -47,6 +77,13 @@ public class GameProcess : MonoBehaviour
     public void NotifyWayPointTouched(GameObject waypoint)
     {
         waypoint.SetActive(false);
+        wayPointCount--;
+        wayPointIndicators[wayPointCount].enabled = false;
+        if (wayPointCount == 0)
+        {
+            this.IsPlaying = false;
+            this.WinScreen.gameObject.SetActive(true);
+        }
     }
 
     public void NotifyNewSegment(Collider segmentCollider)

@@ -14,6 +14,11 @@ public class Rotator : MonoBehaviour {
 	
 	
     void Update () {
+        if (!GameProcess.Instance.IsPlaying)
+        {
+            return;
+        }
+
         if (Input.GetMouseButton(0))
         {
             Vector3 mouseDelta = Input.mousePosition - this.startPosition;
